@@ -112,6 +112,7 @@
 /* Search bar */
 .dashboard-search {
   width: 850px;
+  max-width: 850px;
   height: 59px;
   background-color: #ffffff;
   border-radius: 999px;
@@ -165,8 +166,10 @@
 
 /* Exercise Cards */
 .exercise-card {
-  width: 850px;
-  height: 239px;
+  width: 100%;
+  max-width: 850px;
+  min-height: 239px;   /* deixa crescer se o texto for maior */
+  height: auto;        /* MUITO IMPORTANTE */
   background: #ffffff;
   border-radius: 20px;
   padding: 25px;
@@ -406,5 +409,63 @@
 
   .dashboard-right {
     order: -1;
+  }
+}
+/* ✅ cards ficam consistentes */
+.exercise-card {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* ✅ o conteúdo não “rebenta” */
+.exercise-title,
+.exercise-description {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ✅ cortar texto bonito (sem destruir layout) */
+.clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ✅ difficulty pills */
+.difficulty-pill {
+  border: 1px solid currentColor;
+  background: transparent;
+  font-weight: 600;
+}
+
+/* Easy = verde */
+.difficulty-easy {
+  color: #2e7d32;
+}
+
+/* Intermediate = laranja */
+.difficulty-intermediate {
+  color: #f57c00;
+}
+
+/* Advanced = vermelho */
+.difficulty-advanced {
+  color: #d32f2f;
+}
+
+/* ✅ responsivo (mobile/tablet) */
+@media (max-width: 900px) {
+  .dashboard-main {
+    flex-direction: column;
+  }
+
+  .dashboard-left,
+  .dashboard-right {
+    width: 100%;
+  }
+
+  .dashboard-search input {
+    width: 100%;
   }
 }

@@ -1,54 +1,82 @@
 // src/pages/Dashboard.jsx
 import "./Dashboard.css";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiRequest } from "../services/api";
 
 function Dashboard() {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "null");
 
+  const user = JSON.parse(localStorage.getItem("user") || "null");
   const initials =
     user?.name?.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase() || "??";
 
+  // ✅ states para exercícios
+  const [exercises, setExercises] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState("All");
 
-  // 🔐 PROTEÇÃO DO DASHBOARD
+
   useEffect(() => {
     const token = localStorage.getItem("token");
 
     if (!token) {
       navigate("/login");
+      return;
     }
+
+    const fetchExercises = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const data = await apiRequest("/exercises"); // GET /api/exercises
+        setExercises(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExercises();
   }, [navigate]);
+
+  const subjects = ["All", ...new Set(
+    exercises.map(e => e.subject).filter(Boolean)
+  )];
+
+  const filteredExercises = exercises.filter(
+    ex => selectedSubject === "All" || ex.subject === selectedSubject
+  );
+
+
 
   return (
     <div className="dashboard-page">
       {/* HEADER */}
       <header className="dashboard-header">
-        {/* LEFT - Logo */}
         <div className="dashboard-logo">
-            <div className="dashboard-logo-icon">
+          <div className="dashboard-logo-icon">
             <i className="fa-solid fa-graduation-cap"></i>
-            </div>
-            <span className="dashboard-logo-text">CollabExercises</span>
+          </div>
+          <span className="dashboard-logo-text">CollabExercises</span>
         </div>
 
-        {/* CENTER - Menu */}
         <div className="header-center">
-            <nav className="dashboard-nav">
+          <nav className="dashboard-nav">
             <button className="nav-link nav-link--active">Home</button>
             <button className="nav-link">My Exercises</button>
             <button className="nav-link">My Solutions</button>
-            </nav>
+          </nav>
         </div>
 
-        {/* RIGHT - User */}
         <div className="header-right">
-            <div className="dashboard-user-circle" title={user?.name}>
-              {initials}
-            </div>
+          <div className="dashboard-user-circle" title={user?.name}>
+            {initials}
+          </div>
         </div>
-        </header>
-
+      </header>
 
       {/* MAIN */}
       <main className="dashboard-main">
@@ -57,98 +85,72 @@ function Dashboard() {
           {/* Search */}
           <div className="dashboard-search">
             <i className="fa-solid fa-magnifying-glass"></i>
-            <input
-              type="text"
-              placeholder="Search Exercises..."
-            />
+            <input type="text" placeholder="Search Exercises..." />
           </div>
 
           {/* Filtros */}
           <div className="dashboard-filters">
-            <button className="filter-pill filter-pill--active">All</button>
-            <button className="filter-pill">Math</button>
-            <button className="filter-pill">Programming</button>
-            <button className="filter-pill">Databases</button>
-            <button className="filter-pill">Network</button>
+            {subjects.map((subj) => (
+              <button
+                key={subj}
+                className={`filter-pill ${selectedSubject === subj ? "filter-pill--active" : ""}`}
+                onClick={() => setSelectedSubject(subj)}
+                type="button"
+              >
+                {subj}
+              </button>
+            ))}
           </div>
 
-          {/* Exercício 1 */}
-          <article className="exercise-card">
-            <div className="exercise-card-body">
-              <h3 className="exercise-title">
-                QuickSort Sorting Algorithm in Python
-              </h3>
 
-              <div className="exercise-tags-row">
-                <span className="exercise-tag">Programming</span>
-                <span className="exercise-tag exercise-tag--outlined">
-                  Advanced
-                </span>
+          {/* ✅ ESTADOS */}
+          {loading && <p>Loading exercises...</p>}
+          {error && <p className="error-text">{error}</p>}
+
+          {/* ✅ LISTA REAL */}
+          {!loading && !error && filteredExercises.map((ex) => (
+            <article className="exercise-card" key={ex._id}>
+              <div className="exercise-card-body">
+                <h3 className="exercise-title">{ex.title}</h3>
+
+                <div className="exercise-tags-row">
+                  <span className="exercise-tag">{ex.subject}</span>
+
+                  {ex.difficulty && (
+                    <span className={`exercise-tag difficulty-pill difficulty-${ex.difficulty.toLowerCase()}`}>
+                      {ex.difficulty}
+                    </span>
+                  )}
+                </div>
+                <p className="exercise-description clamp-3">{ex.description}</p>
               </div>
 
-              <p className="exercise-description">
-                Implement the recursive QuickSort algorithm and analyze its time
-                complexity...
-              </p>
-            </div>
+              <div className="exercise-card-footer">
+                <div className="exercise-metrics">
+                  <span>
+                    <i className="fa-solid fa-arrow-up"></i> {ex.upvotes ?? 0}
+                  </span>
+                  <span>
+                    <i className="fa-regular fa-comment"></i> {ex.commentsCount ?? 0}
+                  </span>
+                  <span>
+                    <i className="fa-regular fa-lightbulb"></i> {ex.solutionsCount ?? 0} Solutions
+                  </span>
+                </div>
 
-            <div className="exercise-card-footer">
-              <div className="exercise-metrics">
-                <span>
-                  <i className="fa-solid fa-arrow-up"></i> 42
-                </span>
-                <span>
-                  <i className="fa-regular fa-comment"></i> 18
-                </span>
-                <span>
-                  <i className="fa-regular fa-lightbulb"></i> 12 Solutions
-                </span>
+                <button className="exercise-button">View exercise</button>
               </div>
+            </article>
+          ))}
 
-              <button className="exercise-button">View exercise</button>
-            </div>
-          </article>
-
-          {/* Exercício 2 */}
-          <article className="exercise-card">
-            <div className="exercise-card-body">
-              <h3 className="exercise-title">
-                Partial Derivatives Calculation
-              </h3>
-
-              <div className="exercise-tags-row">
-                <span className="exercise-tag">Math</span>
-                <span className="exercise-tag exercise-tag--outlined">
-                  Intermediate
-                </span>
-              </div>
-
-              <p className="exercise-description">
-                Compute the partial derivatives of the function f(x,y) = ...
-              </p>
-            </div>
-
-            <div className="exercise-card-footer">
-              <div className="exercise-metrics">
-                <span>
-                  <i className="fa-solid fa-arrow-up"></i> 15
-                </span>
-                <span>
-                  <i className="fa-regular fa-comment"></i> 22
-                </span>
-                <span>
-                  <i className="fa-regular fa-lightbulb"></i> 17 Solutions
-                </span>
-              </div>
-
-              <button className="exercise-button">View exercise</button>
-            </div>
-          </article>
+          {/* caso não haja exercícios */}
+          {!loading && !error && filteredExercises.length === 0 && (
+              <p>No exercises yet. Create the first one</p>
+          )}
         </section>
 
         {/* LADO DIREITO */}
         <aside className="dashboard-right">
-          {/* Share your knowledge */}
           <section className="share-card">
             <h2>Share your knowledge</h2>
             <p>
@@ -162,7 +164,6 @@ function Dashboard() {
             </button>
           </section>
 
-          {/* Recent activity */}
           <section className="activity-card">
             <div className="activity-header">
               <span className="activity-icon">
@@ -171,32 +172,15 @@ function Dashboard() {
               <h3>Recent activity</h3>
             </div>
 
-           <div className="activity-item">
-                <div className="activity-line">
-                    <span className="activity-name">Maria Santos</span>
-                    <span className="activity-action">posted a solution</span>
-                    <span className="activity-link">QuickSort</span>
-                </div>
-                <div className="activity-time">2h ago</div>
-                </div>
-
-                <div className="activity-item">
-                <div className="activity-line">
-                    <span className="activity-name">João Costa</span>
-                    <span className="activity-action">commented on</span>
-                    <span className="activity-link">Partial Derivatives</span>
-                </div>
-                <div className="activity-time">3h ago</div>
-                </div>
-
-                <div className="activity-item">
-                    <div className="activity-line">
-                        <span className="activity-name">Ana Silva</span>
-                        <span className="activity-action">posted a new exercise</span>
-                        <span className="activity-link">SQL Joins</span>
-                    </div>
-                <div className="activity-time">5h ago</div>
-                </div>
+            {/* isto fica fake por agora */}
+            <div className="activity-item">
+              <div className="activity-line">
+                <span className="activity-name">Maria Santos</span>
+                <span className="activity-action">posted a solution</span>
+                <span className="activity-link">QuickSort</span>
+              </div>
+              <div className="activity-time">2h ago</div>
+            </div>
           </section>
         </aside>
       </main>
