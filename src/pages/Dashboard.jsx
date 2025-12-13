@@ -5,6 +5,11 @@ import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+
+  const initials =
+    user?.name?.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase() || "??";
+
 
   // 🔐 PROTEÇÃO DO DASHBOARD
   useEffect(() => {
@@ -38,7 +43,9 @@ function Dashboard() {
 
         {/* RIGHT - User */}
         <div className="header-right">
-            <div className="dashboard-user-circle">AN</div>
+            <div className="dashboard-user-circle" title={user?.name}>
+              {initials}
+            </div>
         </div>
         </header>
 

@@ -57,8 +57,15 @@ function Register() {
         return;
       }
 
-      // ✅ sucesso → vai para login
-      navigate("/login");
+      if (!data.token) {
+        setError("Registration succeeded but no token was returned.");
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      navigate("/dashboard");
+
     } catch (err) {
       setError("Server error. Please try again later.");
     }
@@ -89,6 +96,7 @@ function Register() {
                     placeholder="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    required
                   />
                 </div>
               </div>
@@ -105,6 +113,7 @@ function Register() {
                     placeholder="student@university.pt"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                 </div>
               </div>
@@ -121,6 +130,7 @@ function Register() {
                     placeholder="••••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    required
                   />
                 </div>
               </div>
@@ -137,6 +147,7 @@ function Register() {
                     placeholder="••••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
                   />
                 </div>
               </div>
@@ -148,6 +159,7 @@ function Register() {
                     type="checkbox"
                     checked={acceptedTerms}
                     onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    required
                   />
                   <span>I accept the terms and the conditions</span>
                 </label>
