@@ -221,7 +221,7 @@ export default function MySaved() {
             <h2>No saved exercises yet</h2>
             <p>Save exercises to quickly find them later.</p>
 
-            <button className="empty-cta" type="button" onClick={() => navigate("/exercises")}>
+            <button className="empty-cta" type="button" onClick={() => navigate("/dashboard")}>
               <i className="fa-solid fa-magnifying-glass" style={{ marginRight: 10 }} />
               Explore exercises
             </button>
