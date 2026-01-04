@@ -1,0 +1,442 @@
+/* src/pages/MySolutions.css */
+/* Baseado 1:1 no teu MyExercises.css (mesmas medidas/cores/tipografia). :contentReference[oaicite:1]{index=1} */
+
+/* =========================
+   PAGE
+   ========================= */
+.mysol-page{
+  min-height: 100vh;
+  background: #ffffff;
+  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* =========================
+   NAVBAR (igual ao Dashboard/MyExercises)
+   ========================= */
+.dashboard-header{
+  height: 68px;
+  padding: 0 40px;
+  border-bottom: 1px solid #eee;
+  background-color: #ffffff;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 50px;
+}
+
+.header-center{
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.header-right{
+  display: flex;
+  align-items: center;
+}
+
+.dashboard-logo{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.dashboard-logo-icon{
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f97316;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #ffffff;
+}
+
+.dashboard-logo-icon i{
+  font-size: 18px;
+}
+
+.dashboard-logo-text{
+  font-weight: 600;
+  font-size: 20px;
+  color: #f97316;
+}
+
+.dashboard-nav{
+  display: flex;
+  gap: 24px;
+}
+
+.nav-link{
+  border: none;
+  background: none;
+  font-size: 15px;
+  cursor: pointer;
+  color: #777777;
+}
+
+.nav-link--active{
+  color: #f97316;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.dashboard-user-circle{
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #ffe1c0;
+  color: #f97316;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: 600;
+}
+
+/* =========================
+   CONTAINER (ALINHAMENTO)
+   ========================= */
+.mysol-container{
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 34px 24px 60px;
+}
+
+/* =========================
+   HEADER (Título/Subtítulo)
+   ========================= */
+.mysol-header{
+  margin: 0 0 22px;
+  text-align: left;
+}
+
+.mysol-header h1{
+  font-size: 32px;
+  font-weight: 600;
+  margin: 0 0 6px;
+  color: #0f172a;
+}
+
+.mysol-header p{
+  font-size: 15px;
+  margin: 0;
+  color: #64748b;
+}
+
+/* =========================
+   SKELETON
+   ========================= */
+.mysol-skeleton{
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sk-card{
+  max-width: 980px;
+  width: 100%;
+  height: 170px;
+  border-radius: 18px;
+
+  background: linear-gradient(90deg, #f3f4f6 0%, #ededed 50%, #f3f4f6 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+
+  box-shadow: 0 10px 26px rgba(0,0,0,0.08);
+}
+
+@keyframes shimmer{
+  0%{ background-position: 200% 0; }
+  100%{ background-position: -200% 0; }
+}
+
+/* =========================
+   EMPTY STATE (menos largo)
+   ========================= */
+.mysol-empty{
+  margin: 28px 0 0;
+  max-width: 980px;
+  width: 100%;
+
+  border-radius: 22px;
+  background: #fafafa;
+  border: 1px solid #f1f1f1;
+  padding: 46px 24px;
+  text-align: center;
+
+  box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+}
+
+.empty-icon{
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 14px;
+  border-radius: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #fff7ed;
+  color: #f97316;
+  border: 1px solid #fed7aa;
+}
+
+.empty-icon i{
+  font-size: 22px;
+}
+
+.mysol-empty h2{
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.mysol-empty p{
+  margin: 0 auto 18px;
+  max-width: 520px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #6b7280;
+}
+
+.empty-cta{
+  border: none;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: #f97316;
+  color: #ffffff;
+
+  font-weight: 500;
+  font-size: 14px;
+
+  transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+}
+
+.empty-cta:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+}
+
+.empty-cta i{
+  font-size: 16px;
+}
+
+/* =========================
+   LIST + CARD (menos largo + alinhado)
+   ========================= */
+.mysol-list{
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.mysol-card{
+  max-width: 980px;
+  width: 100%;
+
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 20px 22px;
+
+  border: 1px solid #f1f1f1;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.08);
+}
+
+.mysol-card-top{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mysol-title{
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* pills */
+.mysol-pills{
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pill{
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.pill.subject{
+  background: #f97316;
+  color: #ffffff;
+}
+
+.pill.difficulty{
+  background: transparent;
+  color: inherit;
+}
+
+.difficulty-pill{
+  border: 1px solid currentColor;
+  background: transparent;
+  font-weight: 600;
+}
+
+.difficulty-beginner{ color: #2e7d32; }
+.difficulty-intermediate{ color: #f57c00; }
+.difficulty-advanced{ color: #d32f2f; }
+
+.mysol-divider{
+  height: 1px;
+  background: #f1f1f1;
+  margin: 16px 0 14px;
+}
+
+/* bottom row */
+.mysol-card-bottom{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.mysol-metrics{
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #6b7280;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.metric{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.metric i{
+  color: #6b7280;
+}
+
+.dot{
+  color: #c1c1c1;
+}
+
+.time{
+  color: #9ca3af;
+}
+
+/* right actions (Open exercise + View my solution) */
+.mysol-actions-right{
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  white-space: nowrap;
+}
+
+.open-link{
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #6b7280;
+  padding: 8px 10px;
+  border-radius: 10px;
+  transition: .18s ease;
+}
+
+.open-link:hover{
+  color: #111827;
+  background: #f8fafc;
+}
+
+/* view button (igual ao MyExercises) */
+.view-btn{
+  border: none;
+  cursor: pointer;
+
+  padding: 10px 16px;
+  border-radius: 999px;
+
+  background: #f97316;
+  color: #ffffff;
+
+  font-weight: 500;
+  font-size: 14px;
+
+  transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+  white-space: nowrap;
+}
+
+.view-btn:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.12);
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+@media (max-width: 900px){
+  .dashboard-header{
+    padding: 0 18px;
+    gap: 18px;
+  }
+
+  .dashboard-nav{
+    gap: 14px;
+  }
+
+  .mysol-container{
+    padding: 28px 18px 50px;
+  }
+
+  .mysol-card-bottom{
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mysol-actions-right{
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .view-btn{
+    width: auto;
+  }
+}
+
+@media (max-width: 520px){
+  .mysol-actions-right{
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .view-btn{
+    width: 100%;
+  }
+
+  .open-link{
+    text-align: center;
+  }
+}
