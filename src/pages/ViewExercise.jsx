@@ -29,21 +29,21 @@ function ViewExercise() {
   const [postingSolution, setPostingSolution] = useState(false);
 
   const commentsRef = useRef(null);
-
   const solutionsRef = useRef(null);
-  const solutionFileInputRef = useRef(null);
 
   // ✅ attachments UI (comments)
   const [commentFiles, setCommentFiles] = useState([]);
   const fileInputRef = useRef(null);
+
+  // ✅ attachments UI (solutions)
+  const solutionFileInputRef = useRef(null);
 
   const user = useMemo(
     () => JSON.parse(localStorage.getItem("user") || "null"),
     []
   );
 
-  const displayName =
-    user?.name || user?.username || user?.email || "User";
+  const displayName = user?.name || user?.username || user?.email || "User";
 
   const initials =
     displayName
@@ -55,16 +55,15 @@ function ViewExercise() {
       .join("")
       .toUpperCase() || "U";
 
-
-
-
   // ✅ load saved state from backend (per exercise)
   useEffect(() => {
     if (!id) return;
 
     const fetchSavedState = async () => {
       try {
-        const data = await apiRequest(`/exercises/${id}/is-saved`, { auth: true });
+        const data = await apiRequest(`/exercises/${id}/is-saved`, {
+          auth: true,
+        });
         setIsSaved(!!data.saved);
       } catch (err) {
         console.warn("is-saved not available yet:", err?.message || err);
@@ -74,7 +73,6 @@ function ViewExercise() {
 
     fetchSavedState();
   }, [id]);
-
 
   const toggleSaved = async () => {
     if (!id) return;
@@ -101,7 +99,6 @@ function ViewExercise() {
       alert("Não consegui guardar. Estás logada? (token) 👀");
     }
   };
-
 
   // ✅ difficulty class (bulletproof)
   const difficultyClass = useMemo(() => {
@@ -130,7 +127,6 @@ function ViewExercise() {
     return typeof n === "number" ? n : 0;
   }, [exercise]);
 
-
   // ✅ Fetch exercise
   useEffect(() => {
     const fetchExercise = async () => {
@@ -147,7 +143,6 @@ function ViewExercise() {
 
     if (id) fetchExercise();
   }, [id]);
-
 
   // ✅ Fetch comments
   useEffect(() => {
@@ -226,19 +221,26 @@ function ViewExercise() {
     setSolutionFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // ✅ Post comment (placeholder)
+  // ✅ Post comment — texto e/ou ficheiros (multipart)
   const handlePostComment = async () => {
     const text = newComment.trim();
-    if (!text) return;
+
+    if (!text && commentFiles.length === 0) {
+      alert("Write something or attach at least one file 🙂");
+      return;
+    }
 
     setPosting(true);
 
     try {
+      const fd = new FormData();
+      fd.append("text", text);
+      commentFiles.forEach((f) => fd.append("files", f));
+
       const created = await apiRequest(`/exercises/${id}/comments`, {
         method: "POST",
         auth: true,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: fd,
       });
 
       setComments((prev) => [created, ...prev]);
@@ -250,14 +252,13 @@ function ViewExercise() {
     } finally {
       setPosting(false);
     }
-
   };
 
-  // ✅ Post solution (placeholder) — texto e/ou ficheiros
+  // ✅ Post solution — texto e/ou ficheiros (multipart)
   const handlePostSolution = async () => {
-    const notes = solutionNotes.trim();
+    const text = solutionNotes.trim();
 
-    if (!notes && solutionFiles.length === 0) {
+    if (!text && solutionFiles.length === 0) {
       alert("Write something or attach at least one file 🙂");
       return;
     }
@@ -265,11 +266,14 @@ function ViewExercise() {
     setPostingSolution(true);
 
     try {
+      const fd = new FormData();
+      fd.append("text", text); // ✅ backend espera "text"
+      solutionFiles.forEach((f) => fd.append("files", f)); // ✅ backend espera "files"
+
       const created = await apiRequest(`/exercises/${id}/solutions`, {
         method: "POST",
         auth: true,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notes }),
+        body: fd,
       });
 
       setSolutions((prev) => [created, ...prev]);
@@ -281,8 +285,6 @@ function ViewExercise() {
     } finally {
       setPostingSolution(false);
     }
-    
-  
   };
 
   if (loading) {
@@ -303,6 +305,8 @@ function ViewExercise() {
 
   if (!exercise) return null;
 
+  const exerciseAttachments = exercise.attachments || [];
+
   return (
     <div className="view-page">
       <div className="view-container">
@@ -321,12 +325,16 @@ function ViewExercise() {
 
           <button
             type="button"
-            className={`bookmark-btn ${isSaved ? "saved" : ""} ${savePop ? "pop" : ""}`}
+            className={`bookmark-btn ${isSaved ? "saved" : ""} ${
+              savePop ? "pop" : ""
+            }`}
             onClick={toggleSaved}
             aria-label={isSaved ? "Unsave exercise" : "Save exercise"}
             title={isSaved ? "Saved" : "Save"}
           >
-            <i className={isSaved ? "fa-solid fa-bookmark" : "fa-regular fa-bookmark"}></i>
+            <i
+              className={isSaved ? "fa-solid fa-bookmark" : "fa-regular fa-bookmark"}
+            ></i>
           </button>
         </div>
 
@@ -368,9 +376,11 @@ function ViewExercise() {
           <aside className="view-attachments">
             <h3>Attached files</h3>
 
-            {exercise.attachments.length === 0 && <p className="empty">No attachments</p>}
+            {exerciseAttachments.length === 0 && (
+              <p className="empty">No attachments</p>
+            )}
 
-            {exercise.attachments.map((file, index) => (
+            {exerciseAttachments.map((file, index) => (
               <a
                 key={index}
                 className="attachment"
@@ -378,7 +388,7 @@ function ViewExercise() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {file.originalName}
+                {file.originalName || "file"}
               </a>
             ))}
           </aside>
@@ -393,7 +403,6 @@ function ViewExercise() {
 
           <div className="comment-form">
             <div className="comment-avatar">{initials}</div>
-
 
             <div className="comment-inputs">
               <input
@@ -447,7 +456,7 @@ function ViewExercise() {
                   className="comment-post-btn"
                   type="button"
                   onClick={handlePostComment}
-                  disabled={!newComment.trim() || posting}
+                  disabled={posting || (!newComment.trim() && commentFiles.length === 0)}
                 >
                   {posting ? "Posting..." : "Post comment"}
                 </button>
@@ -477,6 +486,22 @@ function ViewExercise() {
                     </div>
 
                     <p className="comment-text">{c.text}</p>
+
+                    {!!(c.attachments || []).length && (
+                      <div className="solution-files-list">
+                        {(c.attachments || []).map((f, idx) => (
+                          <a
+                            key={idx}
+                            className="solution-file"
+                            href={f.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {f.originalName || "file"}
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
@@ -570,21 +595,25 @@ function ViewExercise() {
                     </span>
                   </div>
 
-                  {s.notes && <p className="solution-notes">{s.notes}</p>}
+                  {/* ✅ BACK DEVOLVE "text", não "notes" */}
+                  {s.text && <p className="solution-notes">{s.text}</p>}
 
-                  <div className="solution-files-list">
-                    {(s.files || []).map((f, idx) => (
-                      <a
-                        key={idx}
-                        className="solution-file"
-                        href={f.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {f.originalName || f.name || "file"}
-                      </a>
-                    ))}
-                  </div>
+                  {/* ✅ BACK DEVOLVE "attachments", não "files" */}
+                  {!!(s.attachments || []).length && (
+                    <div className="solution-files-list">
+                      {(s.attachments || []).map((f, idx) => (
+                        <a
+                          key={idx}
+                          className="solution-file"
+                          href={f.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {f.originalName || "file"}
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))
             )}
