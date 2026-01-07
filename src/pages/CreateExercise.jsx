@@ -70,14 +70,9 @@ function CreateExercise() {
     if (!form.description.trim()) newErrors.description = "Description is required.";
     if (!form.subject) newErrors.subject = "Subject is required.";
     if (!form.difficulty) newErrors.difficulty = "Difficulty is required.";
-
-    // ✅ agora exige pelo menos 1 ficheiro
-    if (!form.files || form.files.length === 0) {
-      newErrors.files = "You must attach at least 1 file (PDF/image).";
-    }
-
     return newErrors;
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -93,8 +88,10 @@ function CreateExercise() {
     formData.append("subject", form.subject);
     formData.append("difficulty", form.difficulty);
 
-    // ✅ manda todos como "files"
-    form.files.forEach((f) => formData.append("files", f));
+    if (form.files?.length) {
+      form.files.forEach((f) => formData.append("files", f));
+    }
+
 
     try {
       setLoading(true);
@@ -102,7 +99,9 @@ function CreateExercise() {
       await apiRequest("/exercises", {
         method: "POST",
         body: formData,
+        auth: true,
       });
+
 
       navigate("/dashboard");
     } catch (err) {
@@ -176,7 +175,7 @@ function CreateExercise() {
             </div>
           </div>
 
-          <label className="field-label">Attachments (required)</label>
+          <label className="field-label">Attachments (optional)</label>
           <div className="file-box">
             <label className="file-button">
               Select files
@@ -196,7 +195,7 @@ function CreateExercise() {
           </div>
 
           {errors.files && <p className="error-text">{errors.files}</p>}
-          <p className="file-hint">Attach 1+ PDFs/images.</p>
+          <p className="file-hint">You can attach PDFs or images (optional).</p>
 
           {serverError && <p className="error-text">{serverError}</p>}
 

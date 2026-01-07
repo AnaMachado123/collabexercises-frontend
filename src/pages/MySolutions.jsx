@@ -64,9 +64,8 @@ export default function MySolutions() {
       try {
         setLoading(true);
 
-        // ✅ Ajusta aqui se o teu endpoint tiver outro nome:
-        // Ex: "/solutions/my" ou "/solutions/mine"
-        const data = await apiRequest("/solutions/mine");
+        const data = await apiRequest("/solutions/mine", { auth: true });
+
 
         setItems(Array.isArray(data) ? data : []);
       } catch (err) {
@@ -82,16 +81,12 @@ export default function MySolutions() {
 
   const hasItems = useMemo(() => items.length > 0, [items.length]);
 
-  const handleOpenExercise = (exerciseId) => {
+  const handleViewSolution = (exerciseId) => {
     if (!exerciseId) return;
-    // se o teu route de exercício for /exercises/:id, troca aqui
-    navigate(`/exercise/${exerciseId}`);
+    navigate(`/exercises/${exerciseId}`);
   };
 
-  const handleViewSolution = (solutionId) => {
-    if (!solutionId) return;
-    navigate(`/my-solutions/${solutionId}`);
-  };
+
 
   return (
     <div className="mysol-page">
@@ -262,19 +257,12 @@ export default function MySolutions() {
                     <div className="mysol-actions-right">
                       <button
                         type="button"
-                        className="open-link"
-                        onClick={() => handleOpenExercise(exId)}
+                        className="view-btn"
+                        onClick={() => handleViewSolution(exId)}
                       >
-                        Open exercise
+                        View exercise
                       </button>
 
-                      <button
-                        type="button"
-                        className="view-btn"
-                        onClick={() => handleViewSolution(solId)}
-                      >
-                        View my solution
-                      </button>
                     </div>
                   </div>
                 </div>
