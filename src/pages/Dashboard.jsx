@@ -245,8 +245,11 @@ function Dashboard() {
               <h3>Recent activity</h3>
             </div>
 
-            <RecentActivity limit={6} />
+            <div className="activity-list">
+              <RecentActivity limit={30} />
+            </div>
           </section>
+
 
         </aside>
       </main>
