@@ -600,3 +600,46 @@
     width: 100%;
   }
 }
+
+/* =========================
+   STICKY SIDEBAR (RIGHT)
+   ========================= */
+
+/* garante que a coluna direita começa no topo da grid */
+.dashboard-right{
+  align-self: start;
+
+  position: sticky;
+  top: 20px; /* se tiveres header fixo, mete 88px */
+
+  /* fica sempre visível no viewport */
+  height: calc(100vh - 20px);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* tira sticky dos cards (se tinhas posto antes) */
+.share-card,
+.activity-card{
+  position: static;
+}
+
+/* o share fica fixo em cima */
+.share-card{
+  flex: 0 0 auto;
+}
+
+/* o activity ocupa o resto e faz scroll dentro */
+.activity-card{
+  flex: 1 1 auto;
+  min-height: 0;     /* 🔥 obrigatório para scroll em flex */
+  overflow: hidden;  /* mantém o scroll só na lista */
+}
+
+/* a tua lista já tinha scroll, mantém assim */
+.activity-list{
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
