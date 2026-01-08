@@ -9,7 +9,7 @@
 body {
   font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
-  background-image: url(src/assets/images/lala.png);
+    background-image: url("/lala.png");
     background-size: cover;
     background-position: center;
 }
