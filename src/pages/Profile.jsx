@@ -42,26 +42,19 @@ export default function Profile() {
     return JSON.parse(localStorage.getItem("user") || "null");
   }, []);
 
-
-
-  // profile data
   const [profile, setProfile] = useState({
     name: storedUser?.name || "John Doe",
     email: storedUser?.email || "john.doe@university.edu",
     memberSince: storedUser?.memberSince || "2025",
-    passwordMasked: "••••••••",
-    stats: {
-      exercises: 0,
-      solutions: 0,
-      saved: 0,
-    },
+    stats: { exercises: 0, solutions: 0, saved: 0 },
   });
 
-  // form state
   const [form, setForm] = useState({
     name: storedUser?.name || "John Doe",
     email: storedUser?.email || "john.doe@university.edu",
   });
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // load profile (back)
   useEffect(() => {
@@ -72,17 +65,13 @@ export default function Profile() {
         setLoading(true);
         setError("");
 
-        // ✅ Ajusta se o teu backend tiver outro endpoint
-        // Ex: "/users/me" ou "/profile/me"
         const data = await apiRequest("/users/me");
-
         if (!alive) return;
 
         const next = {
           name: data?.name || storedUser?.name || "John Doe",
           email: data?.email || storedUser?.email || "john.doe@university.edu",
           memberSince: data?.memberSince || "2025",
-          passwordMasked: "••••••••",
           stats: {
             exercises: data?.stats?.exercises ?? 0,
             solutions: data?.stats?.solutions ?? 0,
@@ -93,7 +82,6 @@ export default function Profile() {
         setProfile(next);
         setForm({ name: next.name, email: next.email });
       } catch (err) {
-        // fallback: usa o que já temos (localStorage / default)
         console.warn("Profile endpoint not ready yet:", err?.message || err);
       } finally {
         if (alive) setLoading(false);
@@ -104,8 +92,7 @@ export default function Profile() {
     return () => {
       alive = false;
     };
-  }, []);
-
+  }, [storedUser?.name, storedUser?.email]);
 
   const initials = initialsFromName(profile.name);
 
@@ -118,13 +105,14 @@ export default function Profile() {
     setForm({ name: profile.name, email: profile.email });
     setToast("");
     setError("");
+    navigate("/dashboard");
   };
 
   const handleSave = async () => {
-      try {
-        setSaving(true);
-        setError("");
-        setToast("");
+    try {
+      setSaving(true);
+      setError("");
+      setToast("");
 
       const data = await apiRequest("/users/me", {
         method: "PUT",
@@ -135,7 +123,6 @@ export default function Profile() {
         name: data?.name ?? form.name,
         email: data?.email ?? form.email,
         memberSince: data?.memberSince ?? profile.memberSince,
-        passwordMasked: "••••••••",
         stats: {
           exercises: data?.stats?.exercises ?? profile.stats.exercises ?? 0,
           solutions: data?.stats?.solutions ?? profile.stats.solutions ?? 0,
@@ -158,25 +145,41 @@ export default function Profile() {
     }
   };
 
-
-  const handleChangePassword = () => {
-    // se tiveres route para change password, mete aqui
-    alert("Change password flow (to be implemented)");
-  };
-
   const handleLogoutAll = () => {
-    alert("Logout from all devices (to be implemented)");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
   };
 
-  const handleDeleteAccount = () => {
-    const ok = window.confirm("Delete account? This action cannot be undone.");
-    if (!ok) return;
-    alert("Delete account (to be implemented)");
+  const openDeleteModal = () => setShowDeleteModal(true);
+
+  const closeDeleteModal = () => {
+    if (saving) return;
+    setShowDeleteModal(false);
+  };
+
+  const confirmDeleteAccount = async () => {
+    try {
+      setSaving(true);
+      setError("");
+      setToast("");
+
+      await apiRequest("/users/me", { method: "DELETE" });
+
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      navigate("/login");
+    } catch (err) {
+      setError(err?.message || "Could not delete account.");
+    } finally {
+      setSaving(false);
+      setShowDeleteModal(false);
+    }
   };
 
   return (
     <div className="profile-page">
-      {/* ✅ HEADER / NAVBAR igual aos outros */}
+      {/* HEADER */}
       <header className="dashboard-header">
         <div
           className="dashboard-logo"
@@ -259,7 +262,7 @@ export default function Profile() {
         </div>
       </header>
 
-      {/* ✅ CONTENT */}
+      {/* CONTENT */}
       <div className="profile-container">
         <div className="profile-header">
           <h1>My Profile</h1>
@@ -272,26 +275,30 @@ export default function Profile() {
           </div>
         ) : (
           <div className="profile-card">
-            {/* top info */}
             <div className="profile-top">
               <div className="profile-avatar">{initials}</div>
 
               <div className="profile-top-info">
                 <div className="profile-name">{profile.name}</div>
                 <div className="profile-email">{profile.email}</div>
-                <div className="profile-since">Member since · {profile.memberSince}</div>
+                <div className="profile-since">
+                  Member since · {profile.memberSince}
+                </div>
 
                 <div className="profile-stats">
                   <span className="stat">
-                    <i className="fa-regular fa-file-lines" /> {profile.stats.exercises} Exercises
+                    <i className="fa-regular fa-file-lines" />{" "}
+                    {profile.stats.exercises} Exercises
                   </span>
                   <span className="dot">·</span>
                   <span className="stat">
-                    <i className="fa-regular fa-lightbulb" /> {profile.stats.solutions} Solutions
+                    <i className="fa-regular fa-lightbulb" />{" "}
+                    {profile.stats.solutions} Solutions
                   </span>
                   <span className="dot">·</span>
                   <span className="stat">
-                    <i className="fa-regular fa-bookmark" /> {profile.stats.saved} Saved
+                    <i className="fa-regular fa-bookmark" />{" "}
+                    {profile.stats.saved} Saved
                   </span>
                 </div>
               </div>
@@ -299,7 +306,6 @@ export default function Profile() {
 
             <div className="profile-divider" />
 
-            {/* form */}
             <div className="profile-form">
               {toast && <div className="profile-toast">{toast}</div>}
               {error && <div className="profile-error">{error}</div>}
@@ -324,12 +330,6 @@ export default function Profile() {
                 disabled
               />
 
-              <label className="field-label">Password</label>
-              <input className="input input-disabled" value={profile.passwordMasked} disabled />
-              <button type="button" className="link-btn" onClick={handleChangePassword}>
-                Change password
-              </button>
-
               <div className="profile-actions">
                 <button type="button" className="btn-ghost" onClick={handleCancel}>
                   Cancel
@@ -348,7 +348,6 @@ export default function Profile() {
 
             <div className="profile-divider" />
 
-            {/* account actions */}
             <div className="profile-account">
               <div className="account-title">Account actions</div>
 
@@ -357,7 +356,11 @@ export default function Profile() {
                 Logout from all devices
               </button>
 
-              <button type="button" className="account-item danger" onClick={handleDeleteAccount}>
+              <button
+                type="button"
+                className="account-item danger"
+                onClick={openDeleteModal}
+              >
                 <i className="fa-regular fa-trash-can" />
                 Delete account
               </button>
@@ -365,6 +368,42 @@ export default function Profile() {
           </div>
         )}
       </div>
+
+      {/* MODAL */}
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={closeDeleteModal} role="presentation">
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-icon">
+              <i className="fa-solid fa-triangle-exclamation" />
+            </div>
+
+            <div className="modal-title">Delete account?</div>
+            <div className="modal-text">
+              This action cannot be undone. Your account and data will be permanently removed.
+            </div>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="modal-btn ghost"
+                onClick={closeDeleteModal}
+                disabled={saving}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="modal-btn danger"
+                onClick={confirmDeleteAccount}
+                disabled={saving}
+              >
+                {saving ? "Deleting..." : "Yes, delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

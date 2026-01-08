@@ -337,3 +337,91 @@
     width: 100%;
   }
 }
+
+/* =========================
+   MODAL (DELETE ACCOUNT)
+   ========================= */
+.modal-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 18px;
+}
+
+.modal-card{
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid #f1f1f1;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+  padding: 22px;
+  animation: popIn .16s ease-out;
+}
+
+@keyframes popIn{
+  from { transform: translateY(6px) scale(.98); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.modal-icon{
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ef4444;
+  margin-bottom: 12px;
+  font-size: 18px;
+}
+
+.modal-title{
+  font-size: 16px;
+  font-weight: 800;
+  margin-bottom: 6px;
+  color: #111827;
+}
+
+.modal-text{
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.45;
+  margin-bottom: 16px;
+}
+
+.modal-actions{
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-btn{
+  border: none;
+  cursor: pointer;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.modal-btn.ghost{
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.modal-btn.danger{
+  background: #ef4444;
+  color: #fff;
+}
+
+.modal-btn:disabled{
+  opacity: .65;
+  cursor: not-allowed;
+}
+
