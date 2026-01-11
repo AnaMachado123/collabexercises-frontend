@@ -1,10 +1,9 @@
 // src/pages/Dashboard.jsx
 import "./Dashboard.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { apiRequest } from "../services/api";
 import RecentActivity from "../components/RecentActivity";
-
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -12,6 +11,12 @@ function Dashboard() {
 
   // dropdown user
   const [openUserMenu, setOpenUserMenu] = useState(false);
+
+  // ✅ mobile menu (hambúrguer)
+  const [openMobileNav, setOpenMobileNav] = useState(false);
+
+  const headerRightRef = useRef(null);
+  const mobileNavRef = useRef(null);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -67,13 +72,46 @@ function Dashboard() {
 
   const subjects = ["All", ...new Set(exercises.map((e) => e.subject).filter(Boolean))];
 
+  // ✅ helper: navegar e fechar menus
+  const go = (path) => {
+    setOpenMobileNav(false);
+    setOpenUserMenu(false);
+    navigate(path);
+  };
+
+  // ✅ fechar menus ao clicar fora
+  useEffect(() => {
+    const onDocMouseDown = (e) => {
+      // user dropdown
+      if (headerRightRef.current && !headerRightRef.current.contains(e.target)) {
+        setOpenUserMenu(false);
+      }
+      // mobile nav dropdown
+      if (mobileNavRef.current && !mobileNavRef.current.contains(e.target)) {
+        setOpenMobileNav(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onDocMouseDown);
+    return () => document.removeEventListener("mousedown", onDocMouseDown);
+  }, []);
+
+  // ✅ se passar para desktop, fecha menu mobile
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth > 768) setOpenMobileNav(false);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   return (
     <div className="dashboard-page">
       {/* ================= HEADER ================= */}
       <header className="dashboard-header">
         <div
           className="dashboard-logo"
-          onClick={() => navigate("/dashboard")}
+          onClick={() => go("/dashboard")}
           role="button"
           tabIndex={0}
         >
@@ -83,11 +121,12 @@ function Dashboard() {
           <span className="dashboard-logo-text">CollabExercises</span>
         </div>
 
+        {/* NAV DESKTOP */}
         <div className="header-center">
           <nav className="dashboard-nav">
             <button
               className={`nav-link ${location.pathname === "/dashboard" ? "nav-link--active" : ""}`}
-              onClick={() => navigate("/dashboard")}
+              onClick={() => go("/dashboard")}
               type="button"
             >
               Home
@@ -95,7 +134,7 @@ function Dashboard() {
 
             <button
               className={`nav-link ${location.pathname === "/my-exercises" ? "nav-link--active" : ""}`}
-              onClick={() => navigate("/my-exercises")}
+              onClick={() => go("/my-exercises")}
               type="button"
             >
               My Exercises
@@ -103,7 +142,7 @@ function Dashboard() {
 
             <button
               className={`nav-link ${location.pathname === "/my-solutions" ? "nav-link--active" : ""}`}
-              onClick={() => navigate("/my-solutions")}
+              onClick={() => go("/my-solutions")}
               type="button"
             >
               My Solutions
@@ -111,7 +150,7 @@ function Dashboard() {
 
             <button
               className={`nav-link ${location.pathname === "/my-saved" ? "nav-link--active" : ""}`}
-              onClick={() => navigate("/my-saved")}
+              onClick={() => go("/my-saved")}
               type="button"
             >
               My Saved
@@ -119,11 +158,68 @@ function Dashboard() {
           </nav>
         </div>
 
-        {/* USER + DROPDOWN */}
-        <div className="header-right" style={{ position: "relative" }}>
+        {/* RIGHT: mobile btn + user */}
+        <div className="header-right" style={{ position: "relative" }} ref={headerRightRef}>
+          {/* ✅ HAMBÚRGUER (aparece só no mobile via CSS) */}
+          <div className="mobile-nav-wrap" ref={mobileNavRef}>
+            <button
+              className={`mobile-menu-btn ${openMobileNav ? "open" : ""}`}
+              type="button"
+              aria-label="Open menu"
+              aria-expanded={openMobileNav}
+              onClick={() => {
+                setOpenMobileNav((v) => !v);
+                setOpenUserMenu(false);
+              }}
+            >
+              <span />
+              <span />
+              <span />
+            </button>
+
+            {/* ✅ DROPDOWN MOBILE */}
+            <div className={`mobile-nav ${openMobileNav ? "open" : ""}`}>
+              <button
+                type="button"
+                className={`mobile-nav-item ${location.pathname === "/dashboard" ? "active" : ""}`}
+                onClick={() => go("/dashboard")}
+              >
+                Home
+              </button>
+
+              <button
+                type="button"
+                className={`mobile-nav-item ${location.pathname === "/my-exercises" ? "active" : ""}`}
+                onClick={() => go("/my-exercises")}
+              >
+                My Exercises
+              </button>
+
+              <button
+                type="button"
+                className={`mobile-nav-item ${location.pathname === "/my-solutions" ? "active" : ""}`}
+                onClick={() => go("/my-solutions")}
+              >
+                My Solutions
+              </button>
+
+              <button
+                type="button"
+                className={`mobile-nav-item ${location.pathname === "/my-saved" ? "active" : ""}`}
+                onClick={() => go("/my-saved")}
+              >
+                My Saved
+              </button>
+            </div>
+          </div>
+
+          {/* USER CIRCLE */}
           <div
             className={`dashboard-user-circle ${openUserMenu ? "user-open" : ""}`}
-            onClick={() => setOpenUserMenu((v) => !v)}
+            onClick={() => {
+              setOpenUserMenu((v) => !v);
+              setOpenMobileNav(false);
+            }}
             role="button"
             tabIndex={0}
             title={user?.name}
@@ -132,16 +228,16 @@ function Dashboard() {
           </div>
 
           <div className={`user-dropdown ${openUserMenu ? "open" : ""}`}>
-              <button type="button" onClick={() => navigate("/profile")}>
-                <i className="fa-regular fa-user" />
-                Profile
-              </button>
+            <button type="button" onClick={() => go("/profile")}>
+              <i className="fa-regular fa-user" />
+              Profile
+            </button>
 
-              <button type="button" className="danger" onClick={handleLogout}>
-                <i className="fa-solid fa-arrow-right-from-bracket" />
-                Logout
-              </button>
-            </div>
+            <button type="button" className="danger" onClick={handleLogout}>
+              <i className="fa-solid fa-arrow-right-from-bracket" />
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
@@ -249,8 +345,6 @@ function Dashboard() {
               <RecentActivity limit={30} />
             </div>
           </section>
-
-
         </aside>
       </main>
     </div>
