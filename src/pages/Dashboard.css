@@ -782,3 +782,78 @@
     font-size: 12px;
   }
 }
+/* =========================
+   ✅ NAVBAR MOBILE FIX
+   ========================= */
+
+@media (max-width: 768px) {
+  .dashboard-header {
+    height: auto;                 /* deixa crescer para 2 linhas */
+    padding: 12px 16px;
+    gap: 10px;
+    flex-wrap: wrap;              /* permite quebrar linha */
+    align-items: center;
+  }
+
+  /* Linha 1: logo esquerda */
+  .dashboard-logo {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* Linha 1: user direita */
+  .header-right {
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+
+  /* Linha 2: nav ocupa largura total */
+  .header-center {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    order: 3;                     /* força nav para baixo */
+  }
+
+  .dashboard-nav {
+    width: 100%;
+    gap: 14px;
+    flex-wrap: nowrap;            /* não quebra os links */
+    overflow-x: auto;             /* scroll horizontal */
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+  }
+
+  .dashboard-nav::-webkit-scrollbar {
+    height: 6px;
+  }
+  .dashboard-nav::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.10);
+    border-radius: 999px;
+  }
+  .dashboard-nav::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .nav-link,
+  .nav-link--active {
+    white-space: nowrap;          /* cada link numa linha só */
+    flex: 0 0 auto;
+    font-size: 14px;
+  }
+
+  /* evita que o avatar "flutue" por cima do card */
+  .dashboard-user-circle {
+    position: static;
+  }
+}
+
+/* iPhones pequenos (tipo SE/mini): ainda mais compacto */
+@media (max-width: 420px) {
+  .dashboard-logo-text {
+    font-size: 16px;
+  }
+  .dashboard-logo-icon {
+    width: 34px;
+    height: 34px;
+  }
+}
