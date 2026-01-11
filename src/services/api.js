@@ -1,9 +1,8 @@
-const API_URL = "http://localhost:3000/api";
+const API_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 export async function apiRequest(endpoint, options = {}) {
   const { method = "GET", body, headers: customHeaders = {} } = options;
 
-  // ✅ token automático se existir
   const token = localStorage.getItem("token");
 
   const headers = {
