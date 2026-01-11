@@ -1004,3 +1004,78 @@
     height: 40px;
   }
 }
+
+/* =========================
+   ✅ FIX: HEADER 1 LINHA NO MOBILE
+   (nada do navbar a descer)
+   ========================= */
+
+@media (max-width: 768px) {
+  /* HEADER vira 1 linha */
+  .dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    flex-wrap: nowrap !important;  /* 🔥 não deixa quebrar */
+    height: 68px;                  /* mantém igual ao desktop */
+    padding: 0 16px;
+    gap: 10px;
+
+    position: sticky;              /* opcional, mas fica top */
+    top: 0;
+    z-index: 1500;
+  }
+
+  /* Logo não pode empurrar */
+  .dashboard-logo {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .dashboard-logo-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ✅ ESCONDER o nav normal no mobile (isto é o que está a aparecer “Home/My Exercises”) */
+  .header-center {
+    display: none !important;
+  }
+
+  /* Right controls sempre na direita */
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+  }
+
+  /* Hamburger aparece e NÃO mexe no layout */
+  .nav-toggle {
+    display: flex !important;
+    flex: 0 0 auto;
+  }
+
+  /* Avatar não encolhe nem salta */
+  .dashboard-user-circle {
+    flex: 0 0 auto;
+  }
+
+  /* Menu mobile overlay fica abaixo do header fixo */
+  .mobile-nav-panel {
+    top: 76px; /* header 68 + margem */
+  }
+}
+
+/* mobile muito pequeno: reduzir um bocado o logo */
+@media (max-width: 420px) {
+  .dashboard-logo-icon {
+    width: 34px;
+    height: 34px;
+  }
+  .dashboard-logo-text {
+    font-size: 16px;
+  }
+}
