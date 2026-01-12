@@ -30,18 +30,21 @@ function timeAgo(dateString) {
 export default function MyExercises() {
   const navigate = useNavigate();
   const location = useLocation();
+
   const [openUserMenu, setOpenUserMenu] = useState(false);
+
+  // ✅ mobile nav
+  const [openMobileNav, setOpenMobileNav] = useState(false);
+
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-
-const handleLogout = () => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-  navigate("/login");
-};
-
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
 
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const initials =
@@ -55,13 +58,13 @@ const handleLogout = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ guard de auth igual ao dashboard
+  // auth guard
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
   }, [navigate]);
 
-  // ✅ BACK MODE (liga ao endpoint)
+  // load data
   useEffect(() => {
     const load = async () => {
       try {
@@ -79,6 +82,7 @@ const handleLogout = () => {
     load();
   }, []);
 
+  // lock scroll when delete modal open
   useEffect(() => {
     if (!deleteModalOpen) return;
 
@@ -90,32 +94,30 @@ const handleLogout = () => {
     };
   }, [deleteModalOpen]);
 
+  // ESC close modal / mobile nav
   useEffect(() => {
-    if (!deleteModalOpen) return;
-
     const onKeyDown = (e) => {
-      if (e.key === "Escape") closeDeleteModal();
+      if (e.key === "Escape") {
+        if (deleteModalOpen) closeDeleteModal();
+        if (openMobileNav) setOpenMobileNav(false);
+        if (openUserMenu) setOpenUserMenu(false);
+      }
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [deleteModalOpen]);
+  }, [deleteModalOpen, openMobileNav, openUserMenu]);
 
-
+  // when mobile nav opens, close user dropdown (so não ficam 2 menus a lutar)
+  useEffect(() => {
+    if (openMobileNav) setOpenUserMenu(false);
+  }, [openMobileNav]);
 
   const hasItems = useMemo(() => items.length > 0, [items.length]);
 
-  const handleNew = () => {
-    navigate("/exercises/new");
-  };
-
-  const handleView = (id) => {
-    navigate(`/exercises/${id}`);
-  };
-
-  const handleEdit = (id) => {
-    navigate(`/exercises/${id}/edit`);
-  };
+  const handleNew = () => navigate("/exercises/new");
+  const handleView = (id) => navigate(`/exercises/${id}`);
+  const handleEdit = (id) => navigate(`/exercises/${id}/edit`);
 
   const openDeleteModal = (id) => {
     setDeleteTargetId(id);
@@ -148,10 +150,13 @@ const handleLogout = () => {
     }
   };
 
+  const go = (path) => {
+    setOpenMobileNav(false);
+    navigate(path);
+  };
 
   return (
     <div className="myex-page">
-      {/* ✅ HEADER / NAVBAR igual ao Dashboard */}
       <header className="dashboard-header">
         <div
           className="dashboard-logo"
@@ -165,6 +170,7 @@ const handleLogout = () => {
           <span className="dashboard-logo-text">CollabExercises</span>
         </div>
 
+        {/* DESKTOP/TABLET NAV */}
         <div className="header-center">
           <nav className="dashboard-nav">
             <button
@@ -210,17 +216,33 @@ const handleLogout = () => {
         </div>
 
         <div className="header-right" style={{ position: "relative" }}>
+          {/* ✅ HAMBURGER (mobile) */}
+          <button
+            type="button"
+            className={`nav-toggle ${openMobileNav ? "open" : ""}`}
+            onClick={() => setOpenMobileNav((v) => !v)}
+            aria-label="Open menu"
+            aria-expanded={openMobileNav}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+
+          {/* USER CIRCLE */}
           <div
             className={`dashboard-user-circle ${openUserMenu ? "user-open" : ""}`}
             title={user?.name}
-            onClick={() => setOpenUserMenu((v) => !v)}
+            onClick={() => {
+              setOpenMobileNav(false);
+              setOpenUserMenu((v) => !v);
+            }}
             role="button"
             tabIndex={0}
           >
             {initials}
           </div>
 
-          {/*  fica sempre no DOM para animar */}
           <div className={`user-dropdown ${openUserMenu ? "open" : ""}`}>
             <button type="button" onClick={() => navigate("/profile")}>
               <i className="fa-regular fa-user" />
@@ -233,10 +255,64 @@ const handleLogout = () => {
             </button>
           </div>
         </div>
-
       </header>
 
-      {/*  CONTEÚDO */}
+      {/* ✅ MOBILE MENU OVERLAY + PANEL */}
+      {openMobileNav && (
+        <div
+          className="mobile-nav-overlay"
+          onClick={() => setOpenMobileNav(false)}
+        >
+          <div
+            className="mobile-nav-panel"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            <button
+              type="button"
+              className={`mobile-nav-link ${
+                location.pathname === "/dashboard" ? "active" : ""
+              }`}
+              onClick={() => go("/dashboard")}
+            >
+              Home
+            </button>
+
+            <button
+              type="button"
+              className={`mobile-nav-link ${
+                location.pathname === "/my-exercises" ? "active" : ""
+              }`}
+              onClick={() => go("/my-exercises")}
+            >
+              My Exercises
+            </button>
+
+            <button
+              type="button"
+              className={`mobile-nav-link ${
+                location.pathname === "/my-solutions" ? "active" : ""
+              }`}
+              onClick={() => go("/my-solutions")}
+            >
+              My Solutions
+            </button>
+
+            <button
+              type="button"
+              className={`mobile-nav-link ${
+                location.pathname === "/my-saved" ? "active" : ""
+              }`}
+              onClick={() => go("/my-saved")}
+            >
+              My Saved
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* CONTEÚDO */}
       <div className="myex-container">
         <div className="myex-header">
           <h1>My Exercises</h1>
@@ -256,7 +332,10 @@ const handleLogout = () => {
             </div>
 
             <h2>You haven’t published any exercises yet</h2>
-            <p>When you need help, publish an exercise and get feedback from the community.</p>
+            <p>
+              When you need help, publish an exercise and get feedback from the
+              community.
+            </p>
 
             <button className="empty-cta" type="button" onClick={handleNew}>
               <span> + Post new exercise</span>
@@ -311,10 +390,12 @@ const handleLogout = () => {
                         <i className="fa-regular fa-bookmark"></i> {ex.savesCount ?? 0}
                       </span>
                       <span className="metric">
-                        <i className="fa-regular fa-comment"></i> {ex.commentsCount ?? 0}
+                        <i className="fa-regular fa-comment"></i>{" "}
+                        {ex.commentsCount ?? 0}
                       </span>
                       <span className="metric">
-                        <i className="fa-regular fa-lightbulb"></i> {ex.solutionsCount ?? 0}
+                        <i className="fa-regular fa-lightbulb"></i>{" "}
+                        {ex.solutionsCount ?? 0}
                       </span>
 
                       <span className="dot">·</span>
@@ -336,14 +417,15 @@ const handleLogout = () => {
           </div>
         )}
       </div>
-        {deleteModalOpen && (
-          <div
-            className="ce-modal-overlay"
-            onClick={() => {
-              if (!deleting) closeDeleteModal();
-            }}
-          >
 
+      {/* DELETE MODAL */}
+      {deleteModalOpen && (
+        <div
+          className="ce-modal-overlay"
+          onClick={() => {
+            if (!deleting) closeDeleteModal();
+          }}
+        >
           <div
             className="ce-modal"
             onClick={(e) => e.stopPropagation()}
@@ -363,17 +445,27 @@ const handleLogout = () => {
             </div>
 
             <div className="ce-modal-actions">
-              <button type="button" className="ce-btn ghost" onClick={closeDeleteModal} disabled={deleting}>
+              <button
+                type="button"
+                className="ce-btn ghost"
+                onClick={closeDeleteModal}
+                disabled={deleting}
+              >
                 Cancel
               </button>
 
-              <button type="button" className="ce-btn danger" onClick={confirmDelete} disabled={deleting}>
+              <button
+                type="button"
+                className="ce-btn danger"
+                onClick={confirmDelete}
+                disabled={deleting}
+              >
                 {deleting ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>
         </div>
-        )}
+      )}
     </div>
   );
 }
