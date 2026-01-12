@@ -30,8 +30,9 @@ function timeAgo(dateString) {
 export default function MySaved() {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const [openUserMenu, setOpenUserMenu] = useState(false);
+  const [openMobileNav, setOpenMobileNav] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -51,21 +52,18 @@ export default function MySaved() {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
 
-  //  guard de auth igual ao dashboard
+  // auth guard
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
   }, [navigate]);
 
-  //  BACK MODE (liga ao endpoint)
+  // load saved
   useEffect(() => {
     const load = async () => {
       try {
         setLoading(true);
-
         const data = await apiRequest("/exercises/saved", { auth: true });
-
-
         setItems(Array.isArray(data) ? data : []);
       } catch (err) {
         console.warn("MySaved endpoint not ready yet:", err?.message || err);
@@ -78,9 +76,27 @@ export default function MySaved() {
     load();
   }, []);
 
+  // ESC close menus
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") {
+        if (openMobileNav) setOpenMobileNav(false);
+        if (openUserMenu) setOpenUserMenu(false);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [openMobileNav, openUserMenu]);
+
+  // se abre mobile nav, fecha user dropdown
+  useEffect(() => {
+    if (openMobileNav) setOpenUserMenu(false);
+  }, [openMobileNav]);
+
   const hasItems = useMemo(() => items.length > 0, [items.length]);
 
-  // ✅ normaliza
+  // normaliza row -> exercise
   const pickExercise = (row) => {
     const ex = row?.exercise || row?.item || row?.ex || row;
     return typeof ex === "string" ? { _id: ex } : ex;
@@ -88,9 +104,8 @@ export default function MySaved() {
 
   const handleView = (exerciseId) => {
     if (!exerciseId) return;
-    navigate(`/exercises/${exerciseId}`); // ou /view-exercise/${exerciseId} se a tua rota for essa
+    navigate(`/exercises/${exerciseId}`);
   };
-
 
   const handleRemove = async (row) => {
     const ex = pickExercise(row);
@@ -99,6 +114,7 @@ export default function MySaved() {
     const ok = window.confirm("Remove this exercise from saved?");
     if (!ok) return;
 
+    // optimista
     setItems((prev) =>
       prev.filter((x) => {
         const e = pickExercise(x);
@@ -117,10 +133,13 @@ export default function MySaved() {
     }
   };
 
+  const go = (path) => {
+    setOpenMobileNav(false);
+    navigate(path);
+  };
 
   return (
     <div className="mysaved-page">
-      {/* ✅ NAVBAR */}
       <header className="dashboard-header">
         <div
           className="dashboard-logo"
@@ -134,10 +153,13 @@ export default function MySaved() {
           <span className="dashboard-logo-text">CollabExercises</span>
         </div>
 
+        {/* DESKTOP/TABLET NAV */}
         <div className="header-center">
           <nav className="dashboard-nav">
             <button
-              className={`nav-link ${location.pathname === "/dashboard" ? "nav-link--active" : ""}`}
+              className={`nav-link ${
+                location.pathname === "/dashboard" ? "nav-link--active" : ""
+              }`}
               onClick={() => navigate("/dashboard")}
               type="button"
             >
@@ -145,7 +167,9 @@ export default function MySaved() {
             </button>
 
             <button
-              className={`nav-link ${location.pathname === "/my-exercises" ? "nav-link--active" : ""}`}
+              className={`nav-link ${
+                location.pathname === "/my-exercises" ? "nav-link--active" : ""
+              }`}
               onClick={() => navigate("/my-exercises")}
               type="button"
             >
@@ -153,7 +177,9 @@ export default function MySaved() {
             </button>
 
             <button
-              className={`nav-link ${location.pathname === "/my-solutions" ? "nav-link--active" : ""}`}
+              className={`nav-link ${
+                location.pathname === "/my-solutions" ? "nav-link--active" : ""
+              }`}
               onClick={() => navigate("/my-solutions")}
               type="button"
             >
@@ -161,7 +187,9 @@ export default function MySaved() {
             </button>
 
             <button
-              className={`nav-link ${location.pathname === "/my-saved" ? "nav-link--active" : ""}`}
+              className={`nav-link ${
+                location.pathname === "/my-saved" ? "nav-link--active" : ""
+              }`}
               onClick={() => navigate("/my-saved")}
               type="button"
             >
@@ -171,17 +199,33 @@ export default function MySaved() {
         </div>
 
         <div className="header-right" style={{ position: "relative" }}>
+          {/* ✅ HAMBURGER (mobile) */}
+          <button
+            type="button"
+            className={`nav-toggle ${openMobileNav ? "open" : ""}`}
+            onClick={() => setOpenMobileNav((v) => !v)}
+            aria-label="Open menu"
+            aria-expanded={openMobileNav}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+
+          {/* USER */}
           <div
             className={`dashboard-user-circle ${openUserMenu ? "user-open" : ""}`}
             title={user?.name}
-            onClick={() => setOpenUserMenu((v) => !v)}
+            onClick={() => {
+              setOpenMobileNav(false);
+              setOpenUserMenu((v) => !v);
+            }}
             role="button"
             tabIndex={0}
           >
             {initials}
           </div>
 
-          {/* ✅ fica sempre no DOM para animar */}
           <div className={`user-dropdown ${openUserMenu ? "open" : ""}`}>
             <button type="button" onClick={() => navigate("/profile")}>
               <i className="fa-regular fa-user" />
@@ -194,10 +238,61 @@ export default function MySaved() {
             </button>
           </div>
         </div>
-
       </header>
 
-      {/* ✅ CONTENT */}
+      {/* ✅ MOBILE NAV OVERLAY + PANEL */}
+      {openMobileNav && (
+        <div className="mobile-nav-overlay" onClick={() => setOpenMobileNav(false)}>
+          <div
+            className="mobile-nav-panel"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            <button
+              type="button"
+              className={`mobile-nav-link ${
+                location.pathname === "/dashboard" ? "active" : ""
+              }`}
+              onClick={() => go("/dashboard")}
+            >
+              Home
+            </button>
+
+            <button
+              type="button"
+              className={`mobile-nav-link ${
+                location.pathname === "/my-exercises" ? "active" : ""
+              }`}
+              onClick={() => go("/my-exercises")}
+            >
+              My Exercises
+            </button>
+
+            <button
+              type="button"
+              className={`mobile-nav-link ${
+                location.pathname === "/my-solutions" ? "active" : ""
+              }`}
+              onClick={() => go("/my-solutions")}
+            >
+              My Solutions
+            </button>
+
+            <button
+              type="button"
+              className={`mobile-nav-link ${
+                location.pathname === "/my-saved" ? "active" : ""
+              }`}
+              onClick={() => go("/my-saved")}
+            >
+              My Saved
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* CONTENT */}
       <div className="mysaved-container">
         <div className="mysaved-header">
           <h1>My Saved</h1>
@@ -215,10 +310,15 @@ export default function MySaved() {
             <div className="empty-icon">
               <i className="fa-regular fa-bookmark" />
             </div>
+
             <h2>No saved exercises yet</h2>
             <p>Save exercises to quickly find them later.</p>
 
-            <button className="empty-cta" type="button" onClick={() => navigate("/dashboard")}>
+            <button
+              className="empty-cta"
+              type="button"
+              onClick={() => navigate("/dashboard")}
+            >
               <i className="fa-solid fa-magnifying-glass" style={{ marginRight: 10 }} />
               Explore exercises
             </button>
@@ -227,7 +327,7 @@ export default function MySaved() {
           <div className="mysaved-list">
             {items.map((row) => {
               const ex = pickExercise(row);
-              const rowKey = row?._id || row?.id || ex?._id || ex?.id;
+              const key = row?._id || row?.id || ex?._id || ex?.id || Math.random();
 
               const exId = ex?._id || ex?.id;
               const diffClass = getDifficultyClass(ex?.difficulty);
@@ -241,12 +341,11 @@ export default function MySaved() {
               const savedAt = row?.savedAt || row?.createdAt || row?.created_at || null;
 
               return (
-                <div className="mysaved-card" key={rowKey}>
+                <div className="mysaved-card" key={key}>
                   <div className="mysaved-bookmark" title="Saved">
                     <i className="fa-solid fa-bookmark" />
                   </div>
 
-                  {/* ✅ título alinhado à esquerda (CSS já força) */}
                   <div className="mysaved-card-top">
                     <h3 className="mysaved-title">{ex?.title || "Untitled exercise"}</h3>
                   </div>
@@ -269,7 +368,9 @@ export default function MySaved() {
                         <i className="fa-regular fa-lightbulb" /> {solutionsCount} solutions
                       </span>
                       <span className="dot">·</span>
-                      <span className="time">{savedAt ? `Saved ${timeAgo(savedAt)}` : ""}</span>
+                      <span className="time">
+                        {savedAt ? `Saved ${timeAgo(savedAt)}` : ""}
+                      </span>
                     </div>
 
                     <div className="mysaved-actions-right">
